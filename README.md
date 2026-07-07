@@ -4,6 +4,8 @@ Self-hosted personal-finance automation for European households. Syncs bank acco
 
 **No cloud, no third-party aggregator storing your data.** Everything runs locally on a schedule (macOS launchd); the only external calls are to your bank's PSD2 API and IBKR Flex.
 
+![Dashboard overview built from the synthetic demo dataset](docs/screenshot.png)
+
 ## Demo
 
 Open [`demo/dashboard.html`](demo/dashboard.html) — built entirely from synthetic data. Generate your own:
