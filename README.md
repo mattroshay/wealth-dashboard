@@ -52,7 +52,7 @@ The pipeline is bank-agnostic; a few pieces ship tuned to the author's setup and
 
 - **Bank coverage** — any bank supported by Enable Banking links live; list yours (with its country code) in `config.json → enable_banking.banks`.
 - **Categorisation rules** — `categorize.py`'s `RULES` table is keyword data, not logic. The shipped rules target French merchant labels; swap in keywords for your bank's format and re-run `sync.py` to re-label everything.
-- **Manual-import fallback** — some banks have broken PSD2 feeds. `import_bnp.py` handles BNP Paribas' `.xls` export and doubles as a ~60-line template for writing an importer for any bank's export format.
+- **Manual-import fallback** — some banks have broken PSD2 feeds. `import_bnp.py` handles BNP Paribas' `.xls` export and doubles as a small template for writing an importer for any bank's export format.
 - **Base currency** — EUR, so eurozone households work out of the box; USD accounts (like IBKR) are converted at the EUR/USD rate from the Flex report. A non-euro base currency (GBP, SEK…) currently means editing the `€` formatting in `dashboard_shell.html` / `digest.py` and the FX handling in `sync.py`.
 - **Demo data** — the synthetic dataset simulates a French household so the categoriser has something realistic to chew on; it's flavour, not a requirement.
 
