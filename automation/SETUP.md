@@ -8,7 +8,7 @@ Each day the pipeline pulls transactions + balances → stores them in a local S
 ```
 Enable Banking (PSD2) ─┐
 IBKR Flex ─────────────┤→ sync.py → wealth.db → build_dashboard.py → ../Household-Spending-Dashboard.html
-Bank .xls export (auto)┘                 │
+Bank .xls export (auto) ─────┘                 │
                                          ├─ reconstruct_balances → historical daily balances
                                          └─ tax_report.py → max balance / year-end per account
 weekly:  digest.py → ../weekly-digest.html + macOS notification
