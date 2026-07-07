@@ -16,7 +16,7 @@ import db, categorize
 ACCOUNTS = [
     ("demo-joint",  "EnableBanking", "COMPTE JOINT M ET MME DEMO", "FR7600000000000000000001", "EUR", "bank"),
     ("demo-perso",  "EnableBanking", "COMPTE PERSO M DEMO",        "FR7600000000000000000002", "EUR", "bank"),
-    ("demo-bnp",    "EnableBanking", "BNP COMPTE CHEQUES",         "FR7600000000000000000003", "EUR", "bank"),
+    ("demo-courant", "EnableBanking", "COMPTE COURANT MME DEMO",   "FR7600000000000000000003", "EUR", "bank"),
     ("demo-ibkr",   "IBKR",          "Interactive Brokers",        None,                        "USD", "brokerage"),
 ]
 
@@ -101,7 +101,7 @@ def gen(months=18, seed=42):
                     "raw": {"demo": True}})
 
     # balance snapshots: gentle upward drift + noise
-    base = {"demo-joint": 4200.0, "demo-perso": 2600.0, "demo-bnp": 1800.0, "demo-ibkr": 38000.0}
+    base = {"demo-joint": 4200.0, "demo-perso": 2600.0, "demo-courant": 1800.0, "demo-ibkr": 38000.0}
     start = dt.date.today() - dt.timedelta(days=months * 30)
     d = start
     while d <= dt.date.today():

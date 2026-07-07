@@ -14,6 +14,7 @@ def acct_label(name, iban):
     if "JOINT" in n: return "Joint account"
     if "PERSO" in n: return "Personal account"
     if "LIVRET" in n: return "Savings"
+    if "COURANT" in n or "CHEQUES" in n: return "Current account"
     if "BNP" in n: return "BNP"
     return (name or "Account").title()[:24]
 
