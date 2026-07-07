@@ -1,0 +1,19 @@
+{
+  "enable_banking": {
+    "app_id": "PASTE-YOUR-ENABLE-BANKING-APPLICATION-ID",
+    "private_key_path": "~/.wealth/eb_private.pem",
+    "redirect_url": "https://enablebanking.com/",
+    "banks": [
+      { "name": "BNP Paribas Particuliers", "country": "FR" },
+      { "name": "Your Second Bank", "country": "FR" }
+    ],
+    "sessions": []
+  },
+  "ibkr": {
+    "flex_token": "PASTE-YOUR-IBKR-FLEX-TOKEN",
+    "flex_query_id": "PASTE-YOUR-FLEX-QUERY-ID",
+    "enabled": true
+  },
+  "base_currency": "EUR",
+  "history_days_on_first_sync": 730
+}

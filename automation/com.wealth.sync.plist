@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- macOS launchd job: runs the daily sync at 07:00 (and catches up on wake if the Mac was asleep).
+     1) Edit the two /ABSOLUTE/PATH lines below to your real paths.
+     2) Copy to ~/Library/LaunchAgents/ and load it (see SETUP.md, step 7). -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>            <string>com.wealth.sync</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/PATH/TO/wealth-dashboard/automation/.venv/bin/python3</string>
+    <string>/PATH/TO/wealth-dashboard/automation/sync.py</string>
+  </array>
+  <key>WorkingDirectory</key> <string>/PATH/TO/wealth-dashboard/automation</string>
+  <key>StartCalendarInterval</key>
+  <dict><key>Hour</key><integer>7</integer><key>Minute</key><integer>0</integer></dict>
+  <key>RunAtLoad</key>        <false/>
+  <key>StandardOutPath</key>  <string>/PATH/TO/wealth-dashboard/automation/sync.log</string>
+  <key>StandardErrorPath</key><string>/PATH/TO/wealth-dashboard/automation/sync.log</string>
+</dict>
+</plist>

@@ -1,0 +1,11 @@
+{
+  "_comment": "Manual assets & liabilities for TRUE net worth (property, mortgages, off-platform savings). Copy this file to assets.json and edit the numbers. Values are in EUR unless you add a \"currency\". Update whenever they change (e.g. re-estimate the home, or read the new mortgage balance off your loan statement).",
+  "assets": [
+    { "name": "Home — main residence (est. market value)", "value": 0, "note": "your best estimate" },
+    { "name": "Other savings (Livret A / PEL / assurance-vie)", "value": 0 }
+  ],
+  "liabilities": [
+    { "name": "Home mortgage — outstanding principal", "value": 0, "note": "current balance owed, from your loan statement" },
+    { "name": "Car loan — outstanding", "value": 0 }
+  ]
+}

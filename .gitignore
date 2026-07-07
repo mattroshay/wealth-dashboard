@@ -1,0 +1,17 @@
+# --- real data: never commit ---
+automation/config.json
+automation/assets.json
+automation/wealth.db
+automation/transactions.json
+automation/*.log
+automation/*.csv
+automation/*.pem
+automation/.localhost_*
+*.xls
+Household-Spending-Dashboard.html
+
+# --- environment ---
+automation/.venv/
+__pycache__/
+*.pyc
+.DS_Store
