@@ -1,13 +1,14 @@
 # Wealth pipeline — setup & operating guide
 
-Everything runs locally on your Mac. Secrets (Enable Banking key, IBKR token) never leave the machine.
+Everything runs locally on your machine (this guide is written for macOS; on Linux, swap the launchd
+steps for cron or a systemd timer). Secrets (Enable Banking key, IBKR token) never leave the machine.
 Each day the pipeline pulls transactions + balances → stores them in a local SQLite database
 (`wealth.db`) → rebuilds the dashboard. History accumulates forever for tax and net worth.
 
 ```
 Enable Banking (PSD2) ─┐
 IBKR Flex ─────────────┤→ sync.py → wealth.db → build_dashboard.py → ../Household-Spending-Dashboard.html
-BNP export (auto) ─────┘                 │
+Bank .xls export (auto)┘                 │
                                          ├─ reconstruct_balances → historical daily balances
                                          └─ tax_report.py → max balance / year-end per account
 weekly:  digest.py → ../weekly-digest.html + macOS notification
@@ -59,17 +60,20 @@ python3 link_banks.py --bank "YourBank"     # opens the consent; approve on your
 The linker runs a local HTTPS listener and catches the redirect automatically. Accept the self-signed
 localhost cert warning ("Advanced → Proceed to localhost"). **Chrome works most reliably.**
 
-> **BNP note:** BNP Paribas particulier accounts don't share through PSD2 (they return an empty consent),
-> so BNP is **not** linked live. Instead, export your BNP transactions from BNP's website occasionally and
-> drop the `export_*.xls` into your **Downloads** folder (or this folder) — `sync.py` auto-imports the newest one.
+> **Banks without a working PSD2 feed:** a few banks return empty or broken consents (BNP Paribas
+> particulier accounts, at the time of writing). For those, skip live linking: export transactions from the
+> bank's website occasionally and drop the `export_*.xls` into your **Downloads** folder (or this folder) —
+> `sync.py` auto-imports the newest one. The shipped importer (`import_bnp.py`) parses BNP's export format
+> and is a ~60-line template to copy for your bank's format.
 
 ### 4. First run + net worth
 ```bash
 python3 sync.py                 # pulls ~2 years, builds the dashboard
-cp assets.example.json assets.json     # then edit: home values, mortgage balances, Livrets, car loan
+cp assets.example.json assets.json     # then edit: home values, mortgage balances, savings, car loan
 python3 build_dashboard.py      # net worth now includes property equity
 ```
-Livret A / savings accounts aren't available via PSD2 — add them (and property/mortgages) in `assets.json`.
+Some regulated savings accounts (e.g. French Livret A) aren't exposed via PSD2 — add them (and
+property/mortgages) in `assets.json`.
 
 ### 5. Schedule the daily sync (7am)
 Paths in `com.wealth.sync.plist` are already filled in.
@@ -107,7 +111,7 @@ subscriptions, spikes, duplicate charges, net worth) + a macOS notification.
 ## C. Maintenance
 - **~Every 180 days** each bank consent expires (EU law): `python3 link_banks.py --bank "YourBank"`.
   A `tx_error` in `sync.log` is your cue. (Re-linking auto-cleans the old re-issued account ids.)
-- **BNP:** drop a fresh `export_*.xls` in Downloads whenever you want BNP refreshed.
+- **Manual-import banks:** drop a fresh `export_*.xls` in Downloads whenever you want them refreshed.
 - **Duplicates after a re-link:** `python3 reconcile.py` removes orphaned old account ids.
 - **Categories:** edit the `RULES` list in `categorize.py`, then `python3 sync.py` re-labels.
 - **Health check:** `python3 status.py` (accounts, tx counts, category split, balances).
@@ -123,11 +127,11 @@ subscriptions, spikes, duplicate charges, net worth) + a macOS notification.
 | File | Role |
 |---|---|
 | `config.json` | app id, key path, banks, sessions, IBKR token (secret) |
-| `assets.json` | manual assets/liabilities (property, mortgages, Livrets) for net worth |
+| `assets.json` | manual assets/liabilities (property, mortgages, savings) for net worth |
 | `link_banks.py` | link / re-consent a bank (loopback listener) |
 | `reconcile.py` | fix duplicates / recover session accounts after a re-link |
-| `sync.py` | daily: EB + IBKR + BNP import + reconstruct + rebuild |
-| `import_bnp.py` | load a BNP `.xls` export (also called automatically by sync) |
+| `sync.py` | daily: EB + IBKR + manual `.xls` imports + reconstruct + rebuild |
+| `import_bnp.py` | `.xls` importer for banks without PSD2 (BNP format; template for others) |
 | `eb_client.py` / `ibkr_flex.py` | API clients |
 | `categorize.py` | merchant + category rules |
 | `db.py` | SQLite schema + helpers (`wealth.db`) |
