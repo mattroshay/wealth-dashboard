@@ -64,7 +64,7 @@ localhost cert warning ("Advanced → Proceed to localhost"). **Chrome works mos
 > particulier accounts, at the time of writing). For those, skip live linking: export transactions from the
 > bank's website occasionally and drop the `export_*.xls` into your **Downloads** folder (or this folder) —
 > `sync.py` auto-imports the newest one. The shipped importer (`import_bnp.py`) parses BNP's export format
-> and is a ~60-line template to copy for your bank's format.
+> and is a small template to copy for your bank's format.
 
 ### 4. First run + net worth
 ```bash
