@@ -6,7 +6,7 @@ Usage:
 Re-run whenever you drop a fresh BNP export; rows dedupe by content.
 
 This is the manual-import fallback for banks without a working PSD2 feed. It parses BNP's
-export format specifically, but the whole file is a ~60-line template: to support another
+export format specifically, but the whole file is a small template: to support another
 bank, copy it, adjust the column names / date format, and call it from sync.py."""
 import sys, os, glob, hashlib, re, datetime
 import pandas as pd
