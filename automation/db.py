@@ -79,6 +79,8 @@ def upsert_transaction(con, t):
 
 def record_balance(con, account_uid, snapshot_date, currency, value, source):
     """Records a balance sighting; keeps min/max/close for the day (FBAR max + year-end close)."""
+    if value is None or value != value:   # ignore None/NaN sightings (sqlite stores NaN as NULL)
+        return
     row = con.execute("""SELECT bal_min,bal_max FROM balances
         WHERE account_uid=? AND snapshot_date=? AND source=?""",
         (account_uid, snapshot_date, source)).fetchone()
@@ -87,10 +89,12 @@ def record_balance(con, account_uid, snapshot_date, currency, value, source):
             VALUES(?,?,?,?,?,?,?)""",
             (account_uid, snapshot_date, currency, value, value, value, source))
     else:
+        # stored NULLs (legacy NaN writes) count as "no prior sighting" so the row heals
+        lo = value if row["bal_min"] is None else min(row["bal_min"], value)
+        hi = value if row["bal_max"] is None else max(row["bal_max"], value)
         con.execute("""UPDATE balances SET bal_min=?, bal_max=?, bal_close=?, currency=?
             WHERE account_uid=? AND snapshot_date=? AND source=?""",
-            (min(row["bal_min"], value), max(row["bal_max"], value), value, currency,
-             account_uid, snapshot_date, source))
+            (lo, hi, value, currency, account_uid, snapshot_date, source))
 
 def log(con, provider, status, detail=""):
     import datetime
