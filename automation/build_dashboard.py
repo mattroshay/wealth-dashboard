@@ -6,7 +6,7 @@ import db, categorize
 HERE = os.path.dirname(os.path.abspath(__file__))
 SHELL = os.path.join(HERE, "dashboard_shell.html")
 # dashboard is written one level up, next to your other files
-OUT_HTML = os.path.join(HERE, "..", "Household-Spending-Dashboard.html")
+OUT_HTML = os.path.join(HERE, "..", "Wealth-Management-Dashboard.html")
 OUT_JSON = os.path.join(HERE, "transactions.json")
 
 def acct_label(name, iban):

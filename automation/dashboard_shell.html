@@ -2,7 +2,7 @@
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Household Spending — Interactive</title>
+<title>Wealth Management Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root{--bg:#0f1115;--panel:#181b22;--panel2:#1f232c;--line:#2a2f3a;--txt:#e7eaf0;--muted:#9aa3b2;
@@ -136,7 +136,7 @@
 <body>
 <div class="app">
 <aside class="sidebar" id="sidebar">
-  <div class="brand"><div class="mark">₥</div><div><div class="bt">Household</div><div class="bs">Spending</div></div></div>
+  <div class="brand"><div class="mark">₥</div><div><div class="bt">Wealth Management</div><div class="bs">Dashboard</div></div></div>
 
   <div class="navsec">Overview</div>
   <button class="navitem" data-sec="sec-overview">
@@ -481,7 +481,7 @@ function initDashboard(){
 
     // ---- Navigation ----
     const TITLES={'sec-overview':'Overview','sec-cashflow':'Cash flow','sec-networth':'Net worth','sec-categories':'Categories','sec-recurring':'Recurring & subscriptions','sec-transactions':'Transactions','sec-insights':'Insights'};
-    const SUBS={'sec-overview':'KPIs, monthly outflow and category mix at a glance','sec-cashflow':'Money in vs out — and where income actually lands','sec-networth':'Latest balances across banks + Interactive Brokers','sec-categories':'Click a category to drill into merchants & transactions','sec-recurring':'Charges appearing in ≥3 months of the current filter','sec-transactions':'Every line in the current filter — sort, search, page','sec-insights':'Compare periods and spot trends & anomalies'};
+    const SUBS={'sec-overview':'KPIs, monthly outflow and category mix at a glance','sec-cashflow':'Money in vs out — and where income actually lands','sec-networth':'Total net worth and current balances by account','sec-categories':'Click a category to drill into merchants & transactions','sec-recurring':'Charges appearing in ≥3 months of the current filter','sec-transactions':'Every line in the current filter — sort, search, page','sec-insights':'Compare periods and spot trends & anomalies'};
     const SECMAP={'Overview':'sec-overview','Cash flow':'sec-cashflow','Net worth':'sec-networth','Categories':'sec-categories','Recurring':'sec-recurring','Transactions':'sec-transactions','Insights':'sec-insights'};
     const navItems=[...document.querySelectorAll('.navitem')];
     const sections=[...document.querySelectorAll('.section')];

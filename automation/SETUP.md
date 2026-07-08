@@ -7,7 +7,7 @@ Each day the pipeline pulls transactions + balances → stores them in a local S
 
 ```
 Enable Banking (PSD2) ─┐
-IBKR Flex ─────────────┤→ sync.py → wealth.db → build_dashboard.py → ../Household-Spending-Dashboard.html
+IBKR Flex ─────────────┤→ sync.py → wealth.db → build_dashboard.py → ../Wealth-Management-Dashboard.html
 Bank .xls export (auto)┘                 │
                                          ├─ reconstruct_balances → historical daily balances
                                          └─ tax_report.py → max balance / year-end per account
@@ -100,7 +100,7 @@ subscriptions, spikes, duplicate charges, net worth) + a macOS notification.
 
 ## B. Everyday use
 
-- **Open the dashboard (no terminal):** in Finder, right-click `Household-Spending-Dashboard.html` →
+- **Open the dashboard (no terminal):** in Finder, right-click `Wealth-Management-Dashboard.html` →
   **Make Alias** → drag the alias to your Desktop/Dock. Or bookmark it in Chrome. It's a plain file —
   **no venv or terminal needed to view it.** It refreshes itself after each daily sync.
 - **Ask questions of your data:** the numbers live in `wealth.db`; ask Claude "max balance on the Joint in 2025",
