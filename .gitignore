@@ -8,7 +8,7 @@ automation/*.csv
 automation/*.pem
 automation/.localhost_*
 *.xls
-Household-Spending-Dashboard.html
+Wealth-Management-Dashboard.html
 
 # --- environment ---
 automation/.venv/
