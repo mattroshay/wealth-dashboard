@@ -49,7 +49,7 @@ def categorize(label):
     return "Other"
 
 # ---- income (credits) ----
-# Generic internal-transfer markers. Add your own household patterns (e.g. family
+# Generic internal-transfer markers. Add your own patterns (e.g. family
 # surnames appearing in transfer labels) via "categorize": {"internal": [...]} in config.json.
 INTERNAL = ["DE COMPTE PERSO","DE COMPTE JOINT","DE LIVRET","VRST","PROPRE COM"]
 try:

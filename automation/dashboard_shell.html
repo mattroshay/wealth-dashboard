@@ -2,7 +2,7 @@
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Household Spending — Interactive</title>
+<title>Wealth Management Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root{--bg:#0f1115;--panel:#181b22;--panel2:#1f232c;--line:#2a2f3a;--txt:#e7eaf0;--muted:#9aa3b2;
@@ -136,7 +136,7 @@
 <body>
 <div class="app">
 <aside class="sidebar" id="sidebar">
-  <div class="brand"><div class="mark">₥</div><div><div class="bt">Household</div><div class="bs">Spending</div></div></div>
+  <div class="brand"><div class="mark">₥</div><div><div class="bt">Wealth Management</div><div class="bs">Dashboard</div></div></div>
 
   <div class="navsec">Overview</div>
   <button class="navitem" data-sec="sec-overview">
@@ -215,10 +215,8 @@
 
     <section class="section" id="sec-networth" data-screen-label="Net worth">
       <div class="grid kpis" id="nwkpis"></div>
-      <div class="card"><h3>Balances by account <small>— latest snapshot, incl. Interactive Brokers</small></h3>
-        <table><thead><tr><th>Account</th><th>As of</th><th class="num">Balance</th><th class="num">In EUR</th></tr></thead><tbody id="nwbody"></tbody></table>
-        <div class="note" id="nwnote"></div>
-      </div>
+      <div class="note" id="nwnote" style="margin-bottom:12px"></div>
+      <div id="nwgroups" style="display:grid;gap:14px"></div>
     </section>
 
     <section class="section" id="sec-categories" data-screen-label="Categories">
@@ -416,16 +414,25 @@ function initDashboard(){
       el.innerHTML=items.map(i=>`<div class="s"><div class="sl">${i.l}</div><div class="sv">${i.v}</div></div>`).join('');
     }
     function renderNetWorth(){
-      const el=document.getElementById('nwbody'); if(!el)return;
+      const wrap=document.getElementById('nwgroups'); if(!wrap)return;
       const fx=(DATA.fx&&DATA.fx.eur_usd)||null; const bals=DATA.balances||[];
       const toEur=b=>(b.cur==='EUR')?b.val:(fx?b.val/fx:null);
       let total=0,missing=false;
-      const rows=bals.map(b=>{const e=toEur(b); if(e==null)missing=true; else total+=e; return Object.assign({eur:e},b);}).sort((a,b)=>(b.eur||0)-(a.eur||0));
+      const rows=bals.map(b=>{const e=toEur(b); if(e==null)missing=true; else total+=e; return Object.assign({eur:e},b);});
+      const ORDER=['Bank accounts','Investments','Other assets','Liabilities'];
+      const groups=ORDER.map(g=>({g,rows:rows.filter(r=>(r.group||'Bank accounts')===g).sort((a,b)=>(b.eur||0)-(a.eur||0))})).filter(x=>x.rows.length);
+      const sub=x=>x.rows.reduce((s,r)=>s+(r.eur||0),0);
       const k=document.getElementById('nwkpis');
-      if(k)k.innerHTML=`<div class="card kpi"><div class="lab">Net worth (est., EUR)</div><div class="val">${eur(total)}</div><div class="note" style="background:none;padding:0;margin-top:4px">${bals.length} account${bals.length!==1?'s':''}${fx?` \u00b7 USD\u2192EUR @ ${(1/fx).toFixed(4)}`:''}</div></div>`;
-      el.innerHTML=rows.length?rows.map(r=>`<tr><td>${r.name}${r.manual?' <span class="chip">manual</span>':''}</td><td class="muted">${r.date}</td><td class="num">${r.val.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} ${r.cur}</td><td class="num ${r.eur<0?'delta up':''}">${r.eur!=null?eur(r.eur):'\u2014'}</td></tr>`).join(''):'<tr><td class="muted" colspan="4">No balances yet \u2014 run a sync.</td></tr>';
+      if(k)k.innerHTML=[
+        `<div class="card kpi"><div class="lab">Net worth (est., EUR)</div><div class="val">${eur(total)}</div><div class="note" style="background:none;padding:0;margin-top:4px">${bals.length} account${bals.length!==1?'s':''}${fx?` \u00b7 USD\u2192EUR @ ${(1/fx).toFixed(4)}`:''}</div></div>`,
+        ...groups.map(x=>`<div class="card kpi"><div class="lab">${x.g}</div><div class="val">${eur(sub(x))}</div><div class="note" style="background:none;padding:0;margin-top:4px">${x.rows.length} account${x.rows.length!==1?'s':''}</div></div>`)
+      ].join('');
+      wrap.innerHTML=groups.length?groups.map(x=>`<div class="card"><h3>${x.g} <small>\u2014 ${eur(sub(x))}</small></h3>
+        <table><thead><tr><th>Account</th><th>As of</th><th class="num">Balance</th><th class="num">In EUR</th></tr></thead><tbody>${
+          x.rows.map(r=>`<tr><td>${r.name}${r.manual?' <span class="chip">manual</span>':''}</td><td class="muted">${r.date}</td><td class="num">${r.val.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} ${r.cur}</td><td class="num ${r.eur!=null&&r.eur<0?'delta up':''}">${r.eur!=null?eur(r.eur):'\u2014'}</td></tr>`).join('')
+        }</tbody></table></div>`).join(''):'<div class="card"><div class="muted">No balances yet \u2014 run a sync.</div></div>';
       const note=document.getElementById('nwnote');
-      if(note)note.innerHTML=(missing?'Some non-EUR balances not converted (no FX rate yet). ':'')+'Latest daily snapshot per account. A net-worth trend builds as history accumulates.';
+      if(note)note.innerHTML='Current balances as of the last sync \u2014 the period filter above does not apply here. '+(missing?'Some non-EUR balances not converted (no FX rate yet). ':'')+'A net-worth trend builds as history accumulates.';
     }
     function renderOverviewBreakdown(f,total){
       const head=document.getElementById('ovhead'),body=document.getElementById('ovbody'),sub=document.getElementById('ovSub');
@@ -481,7 +488,7 @@ function initDashboard(){
 
     // ---- Navigation ----
     const TITLES={'sec-overview':'Overview','sec-cashflow':'Cash flow','sec-networth':'Net worth','sec-categories':'Categories','sec-recurring':'Recurring & subscriptions','sec-transactions':'Transactions','sec-insights':'Insights'};
-    const SUBS={'sec-overview':'KPIs, monthly outflow and category mix at a glance','sec-cashflow':'Money in vs out — and where income actually lands','sec-networth':'Latest balances across banks + Interactive Brokers','sec-categories':'Click a category to drill into merchants & transactions','sec-recurring':'Charges appearing in ≥3 months of the current filter','sec-transactions':'Every line in the current filter — sort, search, page','sec-insights':'Compare periods and spot trends & anomalies'};
+    const SUBS={'sec-overview':'KPIs, monthly outflow and category mix at a glance','sec-cashflow':'Money in vs out — and where income actually lands','sec-networth':'Total net worth and current balances by account','sec-categories':'Click a category to drill into merchants & transactions','sec-recurring':'Charges appearing in ≥3 months of the current filter','sec-transactions':'Every line in the current filter — sort, search, page','sec-insights':'Compare periods and spot trends & anomalies'};
     const SECMAP={'Overview':'sec-overview','Cash flow':'sec-cashflow','Net worth':'sec-networth','Categories':'sec-categories','Recurring':'sec-recurring','Transactions':'sec-transactions','Insights':'sec-insights'};
     const navItems=[...document.querySelectorAll('.navitem')];
     const sections=[...document.querySelectorAll('.section')];

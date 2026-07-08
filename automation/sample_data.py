@@ -1,5 +1,5 @@
 """Seed wealth.db with SYNTHETIC data so the whole pipeline can be demoed
-without linking a real bank. Generates ~18 months of plausible French household
+without linking a real bank. Generates ~18 months of plausible French personal-finance
 transactions (fake amounts, real-looking merchant labels), daily-ish balance
 snapshots, and an IBKR-style brokerage account.
 
