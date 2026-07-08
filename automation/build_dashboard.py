@@ -42,9 +42,11 @@ def build(con=None):
               WHERE b2.account_uid=b.account_uid AND b2.source!='reconstructed')"""):
         if r["bal_close"] is None:
             continue
-        nm = "Interactive Brokers" if r["provider"] == "IBKR" else acct_label(r["name"], None)
+        ibkr = r["provider"] == "IBKR"
+        nm = "Interactive Brokers" if ibkr else acct_label(r["name"], None)
         cur = r["currency"] if r["currency"] and r["currency"] != "XXX" else "EUR"
         balances.append({"name": nm, "cur": cur,
+                         "group": "Investments" if ibkr else "Bank accounts",
                          "val": round(r["bal_close"], 2), "date": r["snapshot_date"]})
     # manual assets & liabilities (property, mortgage, off-platform savings) from assets.json
     ap = os.path.join(HERE, "assets.json")
@@ -54,10 +56,12 @@ def build(con=None):
             for a in man.get("assets", []):
                 v = float(a.get("value") or 0)
                 if v: balances.append({"name": a.get("name", "Asset"), "cur": a.get("currency", "EUR"),
+                                       "group": "Other assets",
                                        "val": round(v, 2), "date": a.get("as_of", "manual"), "manual": True})
             for l in man.get("liabilities", []):
                 v = float(l.get("value") or 0)
                 if v: balances.append({"name": l.get("name", "Liability"), "cur": l.get("currency", "EUR"),
+                                       "group": "Liabilities",
                                        "val": -round(abs(v), 2), "date": l.get("as_of", "manual"), "manual": True, "liab": True})
         except Exception:
             pass
