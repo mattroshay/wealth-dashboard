@@ -320,6 +320,10 @@ function initDashboard(){
     const catAgg=f=>{const m={};for(const t of f)m[t.cat]=(m[t.cat]||0)-t.amt;return Object.entries(m).sort((a,b)=>b[1]-a[1]);};
     const catAggIn=f=>{const m={};for(const t of f)m[t.cat]=(m[t.cat]||0)+t.amt;return Object.entries(m).sort((a,b)=>b[1]-a[1]);};
     const monAgg=(f,mr,sign)=>{const m={};mr.forEach(x=>m[x]=0);for(const t of f){const k=t.d.slice(0,7);if(k in m)m[k]+=sign*t.amt;}return mr.map(x=>({m:x,v:m[x]}));};
+    const dataMaxDate=()=>{let d='';for(const t of DATA.tx)if(t.d>d)d=t.d;return d;};
+    // if month m is still incomplete in the data, return its last covered day ('08'), else null
+    const mtdCutoff=m=>{const md=dataMaxDate();if(md.slice(0,7)!==m)return null;const day=md.slice(8,10);const [y,mo]=m.split('-').map(Number);return Number(day)<new Date(y,mo,0).getDate()?day:null;};
+    const sumThrough=(f,m,day,sign)=>{let s=0;for(const t of f)if(t.d.slice(0,7)===m&&t.d.slice(8,10)<=day)s+=sign*t.amt;return s;};
 
     let trendChart,catChart,cashChart;
     function render(){
@@ -388,7 +392,10 @@ function initDashboard(){
       document.getElementById('txcount').textContent=`— ${rows.length} shown`;document.getElementById('pageinfo').textContent=`Page ${page+1} / ${pages}`;}
     function renderAnoms(f,mr){const box=document.getElementById('anoms');const out=[];
       if(mr.length>=2){const ma=monAgg(f,mr,-1);const last=ma[ma.length-1],prev=ma[ma.length-2];
-        if(prev.v>0){const ch=Math.round(100*(last.v-prev.v)/prev.v);out.push(`<div class="anom">Latest month <b>${mLabel(last.m)}</b>: <b>${eur(last.v)}</b> — ${ch>=0?'up':'down'} <b>${Math.abs(ch)}%</b> vs ${mLabel(prev.m)} (${eur(prev.v)}).</div>`);}
+        const cut=mtdCutoff(last.m),pv=cut?sumThrough(f,prev.m,cut,-1):prev.v;
+        if(pv>0){const ch=Math.round(100*(last.v-pv)/pv);out.push(cut
+          ?`<div class="anom"><b>${mLabel(last.m)}</b> month-to-date (through day ${Number(cut)}): <b>${eur(last.v)}</b> — ${ch>=0?'up':'down'} <b>${Math.abs(ch)}%</b> vs the same days of ${mLabel(prev.m)} (${eur(pv)}).</div>`
+          :`<div class="anom">Latest month <b>${mLabel(last.m)}</b>: <b>${eur(last.v)}</b> — ${ch>=0?'up':'down'} <b>${Math.abs(ch)}%</b> vs ${mLabel(prev.m)} (${eur(pv)}).</div>`);}
         const byCatMonth={};for(const t of f){const k=t.d.slice(0,7);(byCatMonth[t.cat]=byCatMonth[t.cat]||{})[k]=(byCatMonth[t.cat][k]||0)-t.amt;}
         const spikes=[];for(const cat in byCatMonth){const series=mr.map(m=>byCatMonth[cat][m]||0);const cur=series[series.length-1];const hist=series.slice(0,-1).filter(x=>x>0).sort((a,b)=>a-b);if(hist.length>=3){const med=hist[Math.floor(hist.length/2)];if(med>20&&cur>med*2)spikes.push([cat,cur,med]);}}
         spikes.sort((a,b)=>b[1]-a[1]).slice(0,4).forEach(([c,cur,med])=>out.push(`<div class="anom"><b>${c}</b> spiked to <b>${eur(cur)}</b> in ${mLabel(mr[mr.length-1])} — ${(cur/med).toFixed(1)}× your typical ${eur(med)}.<span class="flag up">spike</span></div>`));}
@@ -402,7 +409,9 @@ function initDashboard(){
       const el=document.getElementById('summaryStrip'); if(!el)return; const nm=Math.max(mr.length,1);
       const ma=monAgg(f,mr,-1); const last=ma.length?ma[ma.length-1]:null, prev=ma.length>1?ma[ma.length-2]:null;
       let latestHtml='—';
-      if(last){let dh='';if(prev&&prev.v>0){const ch=Math.round(100*(last.v-prev.v)/prev.v);dh=`<span class="sd delta ${ch>=0?'up':'down'}">${ch>=0?'▲':'▼'} ${Math.abs(ch)}% vs ${mLabel(prev.m)}</span>`;}latestHtml=`${eur(last.v)} <span class="muted" style="font-size:11px;font-weight:500">${mLabel(last.m)}</span> ${dh}`;}
+      if(last){let dh='';const cut=prev?mtdCutoff(last.m):null;const pv=cut?sumThrough(f,prev.m,cut,-1):(prev?prev.v:0);
+        if(prev&&pv>0){const ch=Math.round(100*(last.v-pv)/pv);dh=`<span class="sd delta ${ch>=0?'up':'down'}">${ch>=0?'▲':'▼'} ${Math.abs(ch)}% vs ${cut?'same days of ':''}${mLabel(prev.m)}</span>`;}
+        latestHtml=`${eur(last.v)} <span class="muted" style="font-size:11px;font-weight:500">${mLabel(last.m)}${cut?' (MTD)':''}</span> ${dh}`;}
       const rec=recurring(f); const recMo=rec.reduce((a,x)=>a+x.mo,0);
       const items=[
         {l:'Total spend',v:eur(total)},
