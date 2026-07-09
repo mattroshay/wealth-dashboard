@@ -53,6 +53,12 @@ def sync_enable_banking(con, cfg):
     eb = common.eb_client(cfg)
     today = datetime.date.today().isoformat()
     for sess in cfg["enable_banking"].get("sessions", []):
+        if not sess.get("accounts"):
+            # an authorized consent can still cover zero accounts (nothing ticked at the bank);
+            # without this it fails silently every day
+            db.log(con, "EnableBanking", "no_accounts",
+                   f"{sess.get('bank', '?')}: session has no accounts — re-run link_banks.py --bank \"{sess.get('bank', '')}\"")
+            continue
         for uid in sess.get("accounts", []):
             # ensure the account record exists (self-heal names so the dashboard can label it)
             if not con.execute("SELECT 1 FROM accounts WHERE account_uid=?", (uid,)).fetchone():
@@ -123,8 +129,9 @@ def _fmt(d):
     return f"{d[0:4]}-{d[4:6]}-{d[6:8]}" if len(d) == 8 else None
 
 def sync_bnp_manual(con):
-    """BNP has no working live PSD2 feed, so auto-ingest the newest BNP .xls export found in
-    this folder or ~/Downloads. Just drop a fresh export and the daily sync picks it up."""
+    """Fallback feed for BNP: auto-ingest the newest BNP .xls export found in this folder or
+    ~/Downloads — covers history backfill and periods when the PSD2 consent lapses or was
+    granted without any account selected. Just drop a fresh export and the daily sync picks it up."""
     import glob, os
     here = os.path.dirname(os.path.abspath(__file__))
     cands = glob.glob(os.path.join(here, "export_*.xls")) + glob.glob(os.path.expanduser("~/Downloads/export_*.xls"))

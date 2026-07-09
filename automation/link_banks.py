@@ -16,6 +16,19 @@ def find_uid(a):
         if a.get(k): return a[k]
     return None
 
+def session_account_uids(eb, sess, sid):
+    """Account uids of a consent. Some banks attach accounts only after session creation,
+    so when the create-session response has none, re-query the session before concluding
+    the consent covers zero accounts."""
+    uids = [u for u in (find_uid(a) for a in sess.get("accounts") or []) if u]
+    if not uids and sid:
+        try:
+            fresh = eb.get_session(sid)
+            uids = [u for u in (find_uid(a) for a in fresh.get("accounts") or []) if u]
+        except Exception:
+            pass
+    return uids
+
 def ensure_cert():
     """Generate (once) a self-signed cert for localhost so the loopback listener can serve HTTPS."""
     import os
@@ -118,11 +131,12 @@ def link_bank(eb, con, cfg, bank):
         return
     sess = eb.create_session(code)
     sid = sess.get("session_id") or sess.get("sessionId")
-    uids = []
-    for a in sess.get("accounts", []):
-        uid = find_uid(a)
-        if not uid: continue
-        uids.append(uid)
+    uids = session_account_uids(eb, sess, sid)
+    if not uids:
+        print("   ⚠️  Authorization succeeded but the bank shared ZERO accounts — nothing will sync!")
+        print("      Re-run:  python3 link_banks.py --bank \"" + bank["name"] + "\"")
+        print("      and make sure you SELECT/TICK your account(s) on the bank's consent page before approving.")
+    for uid in uids:
         name = bank["name"]; iban = curr = None
         try:
             d = eb.account_details(uid)
