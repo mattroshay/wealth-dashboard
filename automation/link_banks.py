@@ -7,7 +7,16 @@ Usage:
   python3 link_banks.py                  # link every bank in config without an active session
   python3 link_banks.py --bank "BNP"     # (re)link a single bank (substring match)
 """
-import sys, uuid, urllib.parse, datetime, webbrowser, http.server, socket
+import os, sys
+try:
+    import requests  # noqa: F401 — deps live only in automation/.venv; probe before anything heavier
+except ModuleNotFoundError:
+    _venv = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".venv", "bin", "python3")
+    if os.path.exists(_venv) and os.path.realpath(sys.executable) != os.path.realpath(_venv):
+        # bare `python3` (the documented command) is the system interpreter — hop into the venv
+        os.execv(_venv, [_venv, os.path.abspath(__file__)] + sys.argv[1:])
+    raise SystemExit("Dependencies missing — run:  ./.venv/bin/python3 " + os.path.basename(__file__))
+import uuid, urllib.parse, datetime, webbrowser, http.server, socket
 import db, common
 
 def find_uid(a):
@@ -15,6 +24,19 @@ def find_uid(a):
     for k in ("uid", "account_id", "id"):
         if a.get(k): return a[k]
     return None
+
+def session_account_uids(eb, sess, sid):
+    """Account uids of a consent. Some banks attach accounts only after session creation,
+    so when the create-session response has none, re-query the session before concluding
+    the consent covers zero accounts."""
+    uids = [u for u in (find_uid(a) for a in sess.get("accounts") or []) if u]
+    if not uids and sid:
+        try:
+            fresh = eb.get_session(sid)
+            uids = [u for u in (find_uid(a) for a in fresh.get("accounts") or []) if u]
+        except Exception:
+            pass
+    return uids
 
 def ensure_cert():
     """Generate (once) a self-signed cert for localhost so the loopback listener can serve HTTPS."""
@@ -118,11 +140,14 @@ def link_bank(eb, con, cfg, bank):
         return
     sess = eb.create_session(code)
     sid = sess.get("session_id") or sess.get("sessionId")
-    uids = []
-    for a in sess.get("accounts", []):
-        uid = find_uid(a)
-        if not uid: continue
-        uids.append(uid)
+    uids = session_account_uids(eb, sess, sid)
+    if not uids:
+        print("   ⚠️  Authorization succeeded but ZERO accounts came back — nothing will sync!")
+        print("      Most likely: restricted (free-tier) apps only return WHITELISTED accounts.")
+        print("      Add this bank's IBAN to the application's linked accounts in the Enable Banking")
+        print("      Control Panel (enablebanking.com), or tick the account(s) on the bank's consent")
+        print("      page if it shows a selection. Then re-run:  python3 link_banks.py --bank \"" + bank["name"] + "\"")
+    for uid in uids:
         name = bank["name"]; iban = curr = None
         try:
             d = eb.account_details(uid)
