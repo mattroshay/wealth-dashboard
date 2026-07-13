@@ -142,9 +142,11 @@ def link_bank(eb, con, cfg, bank):
     sid = sess.get("session_id") or sess.get("sessionId")
     uids = session_account_uids(eb, sess, sid)
     if not uids:
-        print("   ⚠️  Authorization succeeded but the bank shared ZERO accounts — nothing will sync!")
-        print("      Re-run:  python3 link_banks.py --bank \"" + bank["name"] + "\"")
-        print("      and make sure you SELECT/TICK your account(s) on the bank's consent page before approving.")
+        print("   ⚠️  Authorization succeeded but ZERO accounts came back — nothing will sync!")
+        print("      Most likely: restricted (free-tier) apps only return WHITELISTED accounts.")
+        print("      Add this bank's IBAN to the application's linked accounts in the Enable Banking")
+        print("      Control Panel (enablebanking.com), or tick the account(s) on the bank's consent")
+        print("      page if it shows a selection. Then re-run:  python3 link_banks.py --bank \"" + bank["name"] + "\"")
     for uid in uids:
         name = bank["name"]; iban = curr = None
         try:
