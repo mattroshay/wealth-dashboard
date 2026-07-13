@@ -7,7 +7,16 @@ Usage:
   python3 link_banks.py                  # link every bank in config without an active session
   python3 link_banks.py --bank "BNP"     # (re)link a single bank (substring match)
 """
-import sys, uuid, urllib.parse, datetime, webbrowser, http.server, socket
+import os, sys
+try:
+    import requests  # noqa: F401 — deps live only in automation/.venv; probe before anything heavier
+except ModuleNotFoundError:
+    _venv = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".venv", "bin", "python3")
+    if os.path.exists(_venv) and os.path.realpath(sys.executable) != os.path.realpath(_venv):
+        # bare `python3` (the documented command) is the system interpreter — hop into the venv
+        os.execv(_venv, [_venv, os.path.abspath(__file__)] + sys.argv[1:])
+    raise SystemExit("Dependencies missing — run:  ./.venv/bin/python3 " + os.path.basename(__file__))
+import uuid, urllib.parse, datetime, webbrowser, http.server, socket
 import db, common
 
 def find_uid(a):

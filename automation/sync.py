@@ -1,6 +1,15 @@
 """Daily sync: pull transactions + balances from Enable Banking and NAV/cash from IBKR Flex,
 store into wealth.db, then rebuild the dashboard. Safe to run repeatedly (dedupes by id/day).
 Usage:  python3 sync.py"""
+import os, sys
+try:
+    import requests  # noqa: F401 — deps live only in automation/.venv; probe before anything heavier
+except ModuleNotFoundError:
+    _venv = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".venv", "bin", "python3")
+    if os.path.exists(_venv) and os.path.realpath(sys.executable) != os.path.realpath(_venv):
+        # bare `python3` (the documented command) is the system interpreter — hop into the venv
+        os.execv(_venv, [_venv, os.path.abspath(__file__)] + sys.argv[1:])
+    raise SystemExit("Dependencies missing — run:  ./.venv/bin/python3 " + os.path.basename(__file__))
 import datetime, hashlib, json, traceback
 import db, common, categorize
 
